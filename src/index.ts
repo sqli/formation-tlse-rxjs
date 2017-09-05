@@ -1,48 +1,101 @@
 import {Observable} from 'rxjs/Observable';
-import {Subscription} from 'rxjs/Subscription';
+import {Observer} from 'rxjs/Observer';
 
 {
-    console.log('RxJS - Practice 01');
+    console.log('RxJS - Practice 02');
 
-    const getTimestamp = () => Math.floor(new Date().getTime() / 1000);
+    function generateObserver(max: number) {
+        let index = 0;
+        return {
+            next() {
+                if (index >= max) {
+                    return {
+                        done: true,
+                        value: undefined
+                    };
+                }
+                index++;
+                const nextIndex = index;
+                return {
+                    done: false,
+                    value: {
+                        next: (value: number) => console.log(`Observable ${nextIndex} value: ${value}`),
+                        error: error => console.error(`Observable ${nextIndex} error: ${error}`),
+                        complete: () => console.log(`Observable ${nextIndex} complete`)
+                    }
+                };
+            }
+        };
+    }
 
-    const syncObservable: Observable<number> =
-        Observable.create(observer => {
-            observer.next(1);
-            observer.next(2);
-            observer.next(3);
+    const observerGenerator = generateObserver(100);
+
+    const observable1: Observable<number> =
+        Observable.create(function subscribe(observer: Observer<number>) {
+            try {
+                observer.next(1);
+                observer.next(2);
+                observer.next(3);
+                observer.complete();
+            } catch (error) {
+                observer.error(error);
+            }
         });
+    observable1.subscribe(observerGenerator.next().value);
 
-    console.log('Before Sync Observer 1 subscribe');
-    syncObservable.subscribe(
-        (value: number) => console.log(`Sync observer 1: ${value}`));
-    console.log('After Sync Observer 1 subscribe');
-
-    console.log('Before Sync Observer 2 subscribe');
-    syncObservable.subscribe(
-        (value: number) => console.log(`Sync observer 2: ${value}`));
-    console.log('After Sync Observer 2 subscribe');
-
-    const asyncObservable: Observable<number> =
-        Observable.create(observer => {
-            setInterval(() => observer.next(getTimestamp()), 1000)
+    const observable2: Observable<number> =
+        Observable.create(function subscribe(observer: Observer<number>) {
+            try {
+                observer.next(1);
+                observer.next(2);
+                observer.next(3);
+                observer.complete();
+                observer.next(4);
+            } catch (error) {
+                observer.error(error);
+            }
         });
+    observable2.subscribe(observerGenerator.next().value);
 
-    console.log('Before Async Observer 1 subscribe');
-    const asyncSubscription1: Subscription =
-        asyncObservable.subscribe((value: number) => console.log(`Async observer 1: ${value}`));
-    console.log('After Async Observer 1 subscribe');
+    const observable3: Observable<number> =
+        Observable.create(function subscribe(observer: Observer<number>) {
+            try {
+                observer.next(1);
+                observer.next(2);
+                observer.next(3);
+                observer.complete();
+                observer.error('custom error');
+                observer.next(4);
+            } catch (error) {
+                observer.error(error);
+            }
+        });
+    observable3.subscribe(observerGenerator.next().value);
 
-    let asyncSubscription2: Subscription;
-    setTimeout(() => {
-        console.log('Before Async Observer 2 subscribe');
-        asyncSubscription2 =
-            asyncObservable.subscribe((value: number) => console.log(`Async observer 2: ${value}`));
-        console.log('After Async Observer 2 subscribe');
-    }, 5000);
+    const observable4: Observable<number> =
+        Observable.create(function subscribe(observer: Observer<number>) {
+            try {
+                observer.next(1);
+                observer.next(2);
+                observer.next(3);
+                observer.error('custom error');
+                observer.next(4);
+            } catch (error) {
+                observer.error(error);
+            }
+        });
+    observable4.subscribe(observerGenerator.next().value);
 
-    setTimeout(() => {
-        asyncSubscription1.unsubscribe();
-        asyncSubscription2.unsubscribe();
-    }, 10000);
+    const observable5: Observable<number> =
+        Observable.create(function subscribe(observer: Observer<number>) {
+            try {
+                observer.next(1);
+                observer.next(2);
+                throw new Error('error thrown');
+            } catch (error) {
+                observer.error(error);
+            }
+        });
+    observable5.subscribe(observerGenerator.next().value);
 }
+
