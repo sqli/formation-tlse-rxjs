@@ -1,34 +1,31 @@
 import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/operator/map';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/mapTo';
 import 'rxjs/add/operator/scan';
-import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/startWith';
 
 {
-    console.log('RxJS - Practice 12');
+    console.log('RxJS - Practice 13');
 
-    const subject: Subject<number> = new Subject();
+    const increaseButton = document.querySelector('.state-stores button.increase');
+    const decreaseButton = document.querySelector('.state-stores button.decrease');
 
-    const observable: Observable<number> = Observable.interval(1000).take(10);
+    const increase$: Observable<Function> = Observable.fromEvent(increaseButton, 'click')
+        .mapTo(state => Object.assign({}, state, {
+            count: state.count + 1
+        }));
 
-    subject
-        .scan((values: number[], value: number) => {
-            values.push(value);
-            return values;
-        }, [])
-        .subscribe(
-            (values: number[]) => console.log(`Observer 1: ${values}`));
+    const decrease$: Observable<Function> = Observable.fromEvent(decreaseButton, 'click')
+        .mapTo(state => Object.assign({}, state, {
+            count: state.count - 1
+        }));
 
-    setTimeout(() =>
-            subject
-                .scan((values: number[], value: number) => {
-                    values.push(value);
-                    return values;
-                }, [])
-                .subscribe(
-                    (values: number[]) => console.log(`Observer 2: ${values}`)),
-        5000);
+    const state$ = Observable.merge(increase$, decrease$)
+        .startWith(state => Object.assign({}, state))
+        .scan((state, updateState: Function) => updateState(state), {
+            count: 0
+        });
 
-    observable.subscribe(subject);
+    state$.subscribe((state) => console.log(state.count));
 }
