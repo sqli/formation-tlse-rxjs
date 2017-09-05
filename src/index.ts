@@ -1,14 +1,19 @@
 import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mapTo';
 import 'rxjs/add/operator/scan';
 
 {
-    console.log('RxJS - Practice 06');
+    console.log('RxJS - Practice 07');
 
-    const observable: Observable<number> = Observable.of(1, 2, 3, 4)
-        .scan((sum: number, value: number) => sum + value, 0);
+    const button: Element = document.querySelector('.operators button.commit');
+    const observable: Observable<string> = Observable.fromEvent(button, 'click')
+        .mapTo(1)
+        .scan((sum: number, value: number) => sum + value, 0)
+        .map((sum: number) => `Event ${sum}`);
 
-    observable.subscribe((value: number) => console.log(value));
+    observable.subscribe((value: string) => console.log(value));
 }
 
 
