@@ -5,12 +5,12 @@ import 'rxjs/add/operator/buffer';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mapTo';
-import 'rxjs/add/operator/mergeAll';
+import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/throttleTime';
 
 {
-    console.log('RxJS - Practice 10');
+    console.log('RxJS - Practice 11');
 
     const commitButton: Element = document.querySelector('.operators button.commit');
     const pushButton: Element = document.querySelector('.operators button.push');
@@ -27,7 +27,13 @@ import 'rxjs/add/operator/throttleTime';
 
     commitAction$
         .buffer(pushAction$)
-        .map((commits: string[]) => Observable.from(commits))
-        .mergeAll()
+        .scan((push, commits: string[]) => {
+            return {
+                id: push.id + 1,
+                commits: commits
+            }
+        }, {id: 0, commits: null})
+        .mergeMap(push => Observable.from(push.commits)
+            .map((commit: string) => `Push ${push.id}: ${commit}`))
         .subscribe((commit: string) => console.log(commit));
 }
